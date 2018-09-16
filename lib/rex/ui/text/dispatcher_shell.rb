@@ -131,8 +131,8 @@ module DispatcherShell
     #
     # Wraps shell.update_prompt
     #
-    def update_prompt(prompt=nil, prompt_char = nil, mode = false)
-      shell.update_prompt(prompt, prompt_char, mode)
+    def update_prompt(*args)
+      shell.update_prompt(*args)
     end
 
     def cmd_help_help
@@ -249,6 +249,16 @@ module DispatcherShell
         matches = ::Readline::FILENAME_COMPLETION_PROC.call(dir)
       end
       matches
+    end
+
+    #
+    # Return a list of possible directory for tab completion.
+    #
+    def tab_complete_directory(str, words)
+      str = '.' + ::File::SEPARATOR if str.empty?
+      dirs = Dir.glob(str.concat('*'), File::FNM_CASEFOLD).select { |x| File.directory?(x) }
+
+      dirs
     end
 
     #
@@ -392,7 +402,7 @@ module DispatcherShell
 
     # Match based on the partial word
     items.find_all { |e|
-      e =~ /^#{str}/i
+      e.downcase.start_with?(str.downcase) || e =~ /^#{str}/i
     # Prepend the rest of the command (or it all gets replaced!)
     }.map { |e|
       tab_words.dup.push(e).join(' ')
